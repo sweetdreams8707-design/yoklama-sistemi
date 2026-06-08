@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Yoklama Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sb:#192133;--sb-w:224px;--bg:#f0f4f8;--white:#fff;
+  --border:#e2e8f0;--text:#1a202c;--muted:#718096;
+  --blue:#3b82f6;--green:#16a34a;--green-bg:#f0fdf4;
+  --red:#dc2626;--red-bg:#fef2f2;--amber:#d97706;--amber-bg:#fffbeb;
+  --r:10px;
+}
+body{font-family:'Lexend',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+/* SIDEBAR */
+.sb{width:var(--sb-w);background:var(--sb);min-height:100vh;position:fixed;left:0;top:0;display:flex;flex-direction:column;z-index:100}
+.sb-logo{padding:22px 18px 18px;border-bottom:1px solid rgba(255,255,255,0.07)}
+.sb-logo-title{color:#fff;font-size:15px;font-weight:600}
+.sb-logo-sub{color:rgba(255,255,255,0.35);font-size:11px;margin-top:3px}
+.sb-nav{padding:10px 0;flex:1}
+.sb-section{padding:14px 18px 5px;font-size:10px;font-weight:600;color:rgba(255,255,255,0.22);letter-spacing:.08em;text-transform:uppercase}
+.nav-link{display:flex;align-items:center;gap:10px;padding:10px 18px;color:rgba(255,255,255,0.48);font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all .15s;user-select:none}
+.nav-link svg{width:16px;height:16px;flex-shrink:0}
+.nav-link:hover{color:rgba(255,255,255,.8);background:rgba(255,255,255,.05)}
+.nav-link.active{color:#fff;background:rgba(255,255,255,.08);border-left-color:var(--blue);font-weight:500}
+.sb-bottom{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-cfg{display:flex;align-items:center;gap:9px;padding:9px 10px;color:rgba(255,255,255,.42);font-size:12px;cursor:pointer;border-radius:8px;transition:all .15s}
+.sb-cfg svg{width:15px;height:15px}
+.sb-cfg:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.75)}
+
+/* MAIN */
+.main{margin-left:var(--sb-w);flex:1;display:flex;flex-direction:column;min-height:100vh}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 28px;height:62px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:16px;font-weight:600}
+.topbar-r{display:flex;align-items:center;gap:9px}
+.ctrl{padding:7px 13px;border:1px solid var(--border);border-radius:8px;font-family:'Lexend',sans-serif;font-size:13px;color:var(--text);background:var(--white);cursor:pointer;outline:none}
+.ctrl:focus{border-color:var(--blue)}
+
+/* PROGRESS */
+.progbar{background:var(--white);border-bottom:1px solid var(--border);padding:10px 28px;display:flex;align-items:center;gap:14px}
+.prog-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--blue);border-radius:3px;transition:width .3s ease}
+.prog-lbl{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.prog-lbl b{color:var(--text)}
+.veri-badge{font-size:11px;padding:3px 9px;border-radius:20px;background:#fef3c7;color:#92400e;font-weight:500}
+
+/* PAGES */
+.page{padding:22px 28px;display:none;flex:1}
+.page.active{display:block}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+.stat{background:var(--white);border:1px solid var(--border);border-radius:var(--r);padding:16px}
+.stat-l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.stat-v{font-size:28px;font-weight:600}
+.sv-t{color:var(--text)}.sv-g{color:var(--green)}.sv-r{color:var(--red)}.sv-a{color:var(--amber)}
+.stat-s{font-size:11.5px;color:var(--muted);margin-top:2px}
+
+/* TABLE CARD */
+.tcard{background:var(--white);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.tcard-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tcard-head h3{font-size:13.5px;font-weight:600}
+.search-inp{padding:7px 11px;border:1px solid var(--border);border-radius:7px;font-family:'Lexend',sans-serif;font-size:12.5px;width:190px;outline:none}
+.search-inp:focus{border-color:var(--blue)}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 16px;text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:#f8fafc;border-bottom:1px solid var(--border)}
+td{padding:11px 16px;font-size:13px;vertical-align:middle;border-bottom:1px solid var(--border)}
+tr.dr:last-child td{border-bottom:none}
+tr.dr:hover td{background:#f8fafc}
+
+/* Avatar & personel */
+.avi{width:30px;height:30px;border-radius:50%;background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex-shrink:0}
+.pi{display:flex;align-items:center;gap:10px}
+.pn{font-weight:500;font-size:13.5px}
+.ps{font-size:11.5px;color:var(--muted)}
+
+/* Status buttons */
+.sbtns{display:flex;gap:5px;flex-wrap:wrap}
+.sbtn{padding:5px 11px;border-radius:6px;font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;border:1.5px solid;transition:all .12s;white-space:nowrap;background:#fff}
+.sb-g{border-color:#86efac;color:#16a34a}
+.sb-g:hover,.sb-g.on{background:#16a34a;color:#fff;border-color:#16a34a}
+.sb-r{border-color:#fca5a5;color:#dc2626}
+.sb-r:hover,.sb-r.on{background:#dc2626;color:#fff;border-color:#dc2626}
+.sb-a{border-color:#fcd34d;color:#b45309}
+.sb-a:hover,.sb-a.on{background:#d97706;color:#fff;border-color:#d97706}
+.sb-d{border-color:#c7d2fe;color:#4f46e5;font-size:11px}
+.sb-d:hover,.sb-d.on{background:#4f46e5;color:#fff;border-color:#4f46e5}
+
+/* Detail row */
+tr.dtr td{padding:6px 16px 12px;background:#fafafa;border-bottom:1px solid var(--border)}
+.dinp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.dlbl{font-size:11.5px;color:var(--muted)}
+.dinp select,.dinp input[type=text]{padding:5px 10px;border:1px solid var(--border);border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px;background:#fff;outline:none;color:var(--text)}
+.dinp select:focus,.dinp input[type=text]:focus{border-color:var(--blue)}
+
+/* Bottom bar */
+.bbar{background:var(--white);border-top:1px solid var(--border);padding:13px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;bottom:0}
+.bbar-info{font-size:13px;color:var(--muted)}
+.bbar-btns{display:flex;gap:9px}
+.btn{padding:9px 20px;border-radius:8px;font-family:'Lexend',sans-serif;font-size:13.5px;font-weight:500;cursor:pointer;border:none;transition:all .15s}
+.btn-p{background:var(--blue);color:#fff}
+.btn-p:hover{background:#2563eb}
+.btn-p:disabled{background:#93c5fd;cursor:not-allowed}
+.btn-o{background:var(--white);color:var(--text);border:1.5px solid var(--border)}
+.btn-o:hover{background:#f8fafc}
+
+/* Empty state */
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty h3{font-size:15px;font-weight:500;margin-bottom:6px;color:var(--text)}
+.empty p{font-size:13px}
+
+/* Modal */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:none;align-items:center;justify-content:center}
+.mbg.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:26px;width:500px;max-width:calc(100vw - 40px)}
+.modal h2{font-size:16px;font-weight:600;margin-bottom:5px}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:12px;font-weight:500;margin-bottom:5px;color:var(--muted)}
+.fg input{width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-family:'Lexend',sans-serif;font-size:13px;outline:none;color:var(--text)}
+.fg input:focus{border-color:var(--blue)}
+.fg-hint{font-size:11px;color:var(--muted);margin-top:3px}
+.modal-btns{display:flex;justify-content:flex-end;gap:9px;margin-top:20px}
+
+/* Toast */
+.toast{position:fixed;bottom:76px;right:22px;background:#1a202c;color:#fff;padding:11px 16px;border-radius:9px;font-size:13px;opacity:0;transform:translateY(8px);transition:all .22s;z-index:999;pointer-events:none;max-width:320px}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* Yükleniyor */
+.loading{text-align:center;padding:40px;color:var(--muted);font-size:13px}
+.msel{position:relative;display:inline-block}
+.msel-btn{padding:7px 13px;border:1px solid var(--border);border-radius:8px;font-family:'Lexend',sans-serif;font-size:13px;color:var(--text);background:var(--white);cursor:pointer;display:flex;align-items:center;gap:8px;min-width:160px;user-select:none}
+.msel-btn:hover{border-color:var(--blue)}
+.msel-btn .arrow{margin-left:auto;font-size:10px;color:var(--muted)}
+.msel-panel{position:absolute;top:calc(100% + 4px);left:0;background:var(--white);border:1px solid var(--border);border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.1);z-index:500;min-width:200px;max-height:260px;overflow-y:auto;padding:6px 0}
+.msel-panel label{display:flex;align-items:center;gap:9px;padding:8px 14px;font-size:13px;cursor:pointer;transition:background .1s}
+.msel-panel label:hover{background:#f8fafc}
+.msel-panel input[type=checkbox]{width:15px;height:15px;accent-color:var(--blue)}
+.msel-divider{height:1px;background:var(--border);margin:4px 0}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-logo">
+    <div class="sb-logo-title">Inspection Yoklama Sistemi</div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-section">Yönetim</div>
+    <div class="nav-link active" onclick="sayfaGoster('yoklama',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Yoklama Girişi
+    </div>
+    <div class="nav-link" onclick="sayfaGoster('dashboard',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="sb-section">Analiz</div>
+    <div class="nav-link" onclick="sayfaGoster('raporlama',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Raporlama
+    </div>
+    <div class="nav-link" onclick="sayfaGoster('mesai',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Mesai
+    </div>
+  </nav>
+  <div class="sb-bottom">
+    <div class="sb-cfg" onclick="ayarlariAc()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      API Ayarları
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle">Yoklama Girişi</div>
+    <div class="topbar-r" id="yoklamaCtrl">
+      <div class="msel" id="depoMsel">
+        <div class="msel-btn" onclick="mselToggle('depo')">
+          <span id="depoMselLabel">— Depo Seçin —</span>
+          <span class="arrow">▾</span>
+        </div>
+        <div class="msel-panel" id="depoMselPanel" style="display:none">
+          <label><input type="checkbox" value="TUMU" onchange="mselTumuDegisti('depo',this)"> Tümü</label>
+          <div class="msel-divider"></div>
+          <div id="depoMselItems"></div>
+        </div>
+      </div>
+      <div class="msel" id="yoneticiMsel" style="display:none">
+        <div class="msel-btn" onclick="mselToggle('yon')">
+          <span id="yoneticiMselLabel">Tüm Yöneticiler</span>
+          <span class="arrow">▾</span>
+        </div>
+        <div class="msel-panel" id="yoneticiMselPanel" style="display:none">
+          <label><input type="checkbox" value="TUMU" onchange="mselTumuDegisti('yon',this)"> Tüm Yöneticiler</label>
+          <div class="msel-divider"></div>
+          <div id="yoneticiMselItems"></div>
+        </div>
+      </div>
+      <input type="date" class="ctrl" id="tarihInp" onchange="depoSecildi()">
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progbar" id="progBar">
+    <div class="prog-track"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-lbl"><b id="progDone">0</b> / <b id="progTotal">0</b> personel girildi</div>
+    <span class="veri-badge" id="veriBadge">Örnek Veri</span>
+  </div>
+
+  <!-- YOKLAMA PAGE -->
+  <div class="page active" id="page-yoklama">
+    <div class="empty" id="emptyMsg">
+      <h3>Depo seçin</h3>
+      <p>Yoklama girişi için yukarıdan depo ve tarih seçin</p>
+    </div>
+    <div id="yokContent" style="display:none">
+      <div class="stats">
+        <div class="stat"><div class="stat-l">Toplam</div><div class="stat-v sv-t" id="sTotal">0</div><div class="stat-s">personel</div></div>
+        <div class="stat"><div class="stat-l">Geldi</div><div class="stat-v sv-g" id="sGeldi">0</div><div class="stat-s">kişi</div></div>
+        <div class="stat"><div class="stat-l">Gelmedi</div><div class="stat-v sv-r" id="sGelmedi">0</div><div class="stat-s">kişi</div></div>
+        <div class="stat"><div class="stat-l">Geç Geldi</div><div class="stat-v sv-a" id="sGec">0</div><div class="stat-s">kişi</div></div>
+      </div>
+      <div class="tcard">
+        <div class="tcard-head">
+          <h3 id="tableTitle">Personel Listesi</h3>
+          <div style="display:flex;gap:8px;align-items:center">
+          <input class="search-inp" type="text" placeholder="Personel ara..." oninput="ara(this.value)">
+          <button class="btn btn-o" style="padding:7px 13px;font-size:12px;white-space:nowrap" onclick="tumunuSifirla()">↺ Sıfırla</button>
+        </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width:240px">Personel</th>
+              <th style="width:90px">Masa No</th>
+              <th style="width:150px">Yönetici</th>
+              <th>Durum</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD PAGE -->
+  <div class="page" id="page-dashboard">
+    <!-- YENİLE BUTONU -->
+    <div style="display:flex;justify-content:flex-end;margin-bottom:8px">
+      <button class="btn btn-o" style="font-size:12px;padding:6px 14px" onclick="dashboardGuncelle()">↻ Yenile</button>
+    </div>
+    <!-- FİLTRELER -->
+    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <select class="ctrl" id="db-lokasyon" onchange="dashboardGuncelle()" style="min-width:160px">
+        <option value="">Tüm Lokasyonlar</option>
+      </select>
+      <select class="ctrl" id="db-yonetici-filtre" onchange="dashboardGuncelle()" style="min-width:160px">
+        <option value="">Tüm Yöneticiler</option>
+      </select>
+      <select class="ctrl" id="db-durum-filtre" onchange="dashboardGuncelle()">
+        <option value="">Tüm Durumlar</option>
+        <option value="Geldi">İşe Geldi</option>
+        <option value="Gelmedi">Gelmedi</option>
+        <option value="Geç Geldi">Geç Geldi</option>
+        <option value="Destek">Destek</option>
+      </select>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:12.5px;color:var(--muted)">Tarih:</span>
+        <input type="date" class="ctrl" id="db-tarih-inp" onchange="dashboardGuncelle()">
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <div id="db-ozet" style="display:flex;gap:8px"></div>
+        <button class="btn btn-p" style="font-size:12.5px;padding:8px 16px" onclick="mailGonder()">✉ Mail Gönder</button>
+      </div>
+    </div>
+
+    <!-- İNSPEKTÖR ÖZETİ -->
+    <div id="db-ins-ozet" style="margin-bottom:12px"></div>
+
+    <!-- YÖNETİCİ KARTLARI -->
+    <div id="db-yonetici-kartlar" style="display:flex;gap:10px;overflow-x:auto;margin-bottom:16px;padding-bottom:4px"></div>
+
+    <!-- DEPO BAZINDA İNSPEKTÖR -->
+    <div id="db-depo-inspektor" style="margin-bottom:16px"></div>
+
+    <!-- TABLO -->
+    <div class="tcard">
+      <div class="tcard-head">
+        <h3>Personel Detay</h3>
+        <span id="db-kayit-sayisi" style="font-size:12.5px;color:var(--muted)"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Yönetici</th>
+            <th>Personel Ref</th>
+            <th style="min-width:180px">Ad Soyad</th>
+            <th>Masa No</th>
+            <th>Nerede</th>
+            <th>Durum</th>
+            <th>Destek</th>
+          </tr>
+        </thead>
+        <tbody id="db-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RAPORLAMA  <!-- RAPORLAMA PAGE -->
+  <div class="page" id="page-raporlama">
+    <div class="empty"><h3>Raporlama</h3><p>Tarih aralığı ve depo bazında raporlar burada olacak</p></div>
+  </div>
+
+  <!-- MESAI PAGE -->
+  <div class="page" id="page-mesai">
+    <div class="empty"><h3>Mesai</h3><p>Mesai kayıt ve görüntüleme burada olacak</p></div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="bbar" id="bbar">
+    <div class="bbar-info" id="bbarInfo">Depo seçin ve yoklama girişine başlayın</div>
+    <div class="bbar-btns">
+      <button class="btn btn-o" onclick="yedekYukle()">Yedeği Yükle</button>
+      <button class="btn btn-p" id="kaydetBtn" disabled onclick="kaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- AYARLAR MODAL -->
+<div class="mbg" id="ayarlarModal" onclick="ayarlariKapat()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <h2>⚙️ API Ayarları</h2>
+    <p class="modal-sub">Power Automate flow URL'lerini girin. Boş bırakılırsa sistem örnek veriyle çalışır.</p>
+    <div class="fg">
+      <label>Personel Listesi Flow URL</label>
+      <input type="text" id="cfgPersonel" placeholder="https://...powerautomate...">
+      <div class="fg-hint">Personel listesini döndüren HTTP trigger URL'si</div>
+    </div>
+    <div class="fg">
+      <label>Yoklama Kaydet Flow URL</label>
+      <input type="text" id="cfgKaydet" placeholder="https://...powerautomate...">
+      <div class="fg-hint">Yoklama kayıtlarını SharePoint'e yazan HTTP trigger URL'si</div>
+    </div>
+    <div class="fg">
+      <label>Yoklama Sorgula Flow URL</label>
+      <input type="text" id="cfgSorgula" placeholder="https://...powerautomate...">
+      <div class="fg-hint">Geçmiş yoklama kayıtlarını getiren HTTP trigger URL'si</div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-o" onclick="ayarlariKapat()">İptal</button>
+      <button class="btn btn-p" onclick="ayarlariKaydet()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="mbg" id="eksikModal" onclick="this.classList.remove('open')">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:500px;max-height:80vh;overflow-y:auto">
+    <h2>⚠️ Kaydı Eksik Personel</h2>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px" id="eksikSayiText"></p>
+    <div id="eksikListe"></div>
+    <div class="modal-btns"><button class="btn btn-p" onclick="document.getElementById('eksikModal').classList.remove('open')">Kapat</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+
+
+// ─── MOCK VERİ ────────────────────────────────────────────────────────────────
+// Power Automate flow bağlandığında bu veriler gerçek verilerle değişir
+const MOCK = [
+  {ID:1,Title:'Ahmet Yılmaz',   Yonetici:'Mehmet Akın',   MasaNo:'M-01',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H001'},
+  {ID:2,Title:'Fatma Kaya',     Yonetici:'Mehmet Akın',   MasaNo:'M-02',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H002'},
+  {ID:3,Title:'Hüseyin Çelik',  Yonetici:'Mehmet Akın',   MasaNo:'M-03',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H003'},
+  {ID:4,Title:'Zeynep Arslan',  Yonetici:'Selin Yıldız',  MasaNo:'M-04',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H004'},
+  {ID:5,Title:'Mustafa Demir',  Yonetici:'Selin Yıldız',  MasaNo:'M-05',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H005'},
+  {ID:6,Title:'Elif Şahin',     Yonetici:'Selin Yıldız',  MasaNo:'M-06',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H006'},
+  {ID:7,Title:'İbrahim Koç',    Yonetici:'Kadir Öz',      MasaNo:'M-07',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H007'},
+  {ID:8,Title:'Ayşe Güneş',     Yonetici:'Kadir Öz',      MasaNo:'M-08',CalistigiDepo:'Depo-1 İkitelli', PersonelRef:'H008'},
+  {ID:9,Title:'Osman Polat',    Yonetici:'Haluk Demirtaş',MasaNo:'M-01',CalistigiDepo:'Depo-2 Esenyurt',  PersonelRef:'H009'},
+  {ID:10,Title:'Merve Doğan',   Yonetici:'Haluk Demirtaş',MasaNo:'M-02',CalistigiDepo:'Depo-2 Esenyurt',  PersonelRef:'H010'},
+  {ID:11,Title:'Serkan Yıldırım',Yonetici:'Haluk Demirtaş',MasaNo:'M-03',CalistigiDepo:'Depo-2 Esenyurt', PersonelRef:'H011'},
+  {ID:12,Title:'Büşra Aydın',   Yonetici:'Cemre Aktaş',   MasaNo:'M-04',CalistigiDepo:'Depo-2 Esenyurt',  PersonelRef:'H012'},
+  {ID:13,Title:'Emre Kılıç',    Yonetici:'Cemre Aktaş',   MasaNo:'M-05',CalistigiDepo:'Depo-2 Esenyurt',  PersonelRef:'H013'},
+  {ID:14,Title:'Neslihan Öztürk',Yonetici:'Cemre Aktaş',  MasaNo:'M-06',CalistigiDepo:'Depo-2 Esenyurt',  PersonelRef:'H014'},
+  {ID:15,Title:'Recep Karaca',  Yonetici:'Ali Erdoğan',   MasaNo:'M-01',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H015'},
+  {ID:16,Title:'Hatice Bozkurt',Yonetici:'Ali Erdoğan',   MasaNo:'M-02',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H016'},
+  {ID:17,Title:'Yasin Tunç',    Yonetici:'Ali Erdoğan',   MasaNo:'M-03',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H017'},
+  {ID:18,Title:'Gülsüm Çetin',  Yonetici:'Bahar Saygı',   MasaNo:'M-04',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H018'},
+  {ID:19,Title:'Taner Özdemir', Yonetici:'Bahar Saygı',   MasaNo:'M-05',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H019'},
+  {ID:20,Title:'Aylin Şimşek',  Yonetici:'Bahar Saygı',   MasaNo:'M-06',CalistigiDepo:'Depo-3 Bağcılar',  PersonelRef:'H020'},
+];
+
+const SEBEPLER = ['Yıllık İzin','Mazeret İzni','Ücretsiz İzin','HTM','Hasta','Rapor','Babalık İzni','Devamsızlık','Diğer'];
+
+
+// ─── UNVAN HARİTASI ──────────────────────────────────────────────────────────
+const UNVAN_MAP = {
+  '106230': 'Inspection Planlama Destek Görevlisi', // Hakan Gül
+  '194897': 'Inspection Planlama Destek Uzmanı',    // Harun Kılıç
+  '119227': 'Inspection Planlama Destek Görevlisi', // Müslüm Duran
+  '140476': 'Teknik Değerlendirme Uzmanı',          // Ömer Yılbur
+  '115157': 'Teknik Değerlendirme Uzmanı',          // Sunay Oruç
+  '108728': 'Teknik Değerlendirme Uzmanı',          // Semiha Başaran
+  '105769': 'Inspection Ekip Yöneticisi',           // Abdurrahman Köçer
+  '150725': 'Inspection Ekip Yöneticisi',           // Fatma Doğan
+  '156139': 'Inspection Ekip Yöneticisi',           // Ümmügülsüm Atak
+  '119239': 'Inspection Ekip Yöneticisi',           // Birsen Atmaca
+  '33835':  'Inspection Ekip Yöneticisi',           // Nihal Öztürk
+  '119227': 'Inspection Ekip Yöneticisi',           // Murat Köksal - düzeltildi
+  '243333': 'Inspection Ekip Yöneticisi',           // Hazal Çalık Akgün
+  '74483':  'Inspection Ekip Yöneticisi',           // Müslüm Duran (yönetici)
+};
+
+// Müslüm Duran'ı düzelt
+UNVAN_MAP['119227'] = 'Inspection Planlama Destek Görevlisi'; // Müslüm Duran
+UNVAN_MAP['74483']  = 'Inspection Ekip Yöneticisi';           // Müslüm Duran farklı ref?
+
+const UNVAN_RENK = {
+  'Inspector': { bg: '#eff6ff', color: '#1d4ed8' },
+  'Inspection Ekip Yöneticisi': { bg: '#f5f3ff', color: '#6d28d9' },
+  'Teknik Değerlendirme Uzmanı': { bg: '#fef3c7', color: '#92400e' },
+  'Inspection Planlama Destek Uzmanı': { bg: '#f0fdf4', color: '#166534' },
+  'Inspection Planlama Destek Görevlisi': { bg: '#f0fdf4', color: '#166534' },
+};
+
+function getUnvan(p) {
+  const ref = String(p.PersonelRef || '').trim();
+  return UNVAN_MAP[ref] || 'Inspector';
+}
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let tumPersonel = [];
+let durumlar = {};
+let secDepo = '';
+let seciliDepolar = [];
+let seciliYoneticiler = [];
+let aktifListe = [];
+let filtreliListe = [];
+let aramaStr = '';
+let gercekVeri = false;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#depoMsel')) document.getElementById('depoMselPanel').style.display = 'none';
+  if (!e.target.closest('#yoneticiMsel')) { const p = document.getElementById('yoneticiMselPanel'); if(p) p.style.display='none'; }
+});
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('tarihInp').value = bugun();
+  document.getElementById('cfgPersonel').value = ls('ys_pUrl') || '';
+  document.getElementById('cfgKaydet').value   = ls('ys_kUrl') || '';
+  document.getElementById('cfgSorgula').value  = ls('ys_sUrl') || '';
+  personelYukle();
+});
+
+function bugun() { return new Date().toISOString().split('T')[0]; }
+function ls(k) { return localStorage.getItem(k); }
+
+// ─── SharePoint ham veriyi normalize et ───────────────────────────────────────
+function normalizePersonel(p) {
+  const spVeri = 'field_3' in p || 'field_0' in p;
+  if (spVeri) {
+    return {
+      ID: p.ID,
+      Title: p.field_3 || p.Title || '',
+      Yonetici: p.Title || '',
+      CalistigiDepo: p.field_0 || '',
+      PersonelRef: String(p.field_2 || p.ID || ''),
+      MasaNo: p.MasaNo || ''
+    };
+  }
+  return p;
+}
+
+// ─── PERSONEL YÜKLEME ─────────────────────────────────────────────────────────
+async function personelYukle() {
+  const url = ls('ys_pUrl');
+  if (url) {
+    try {
+      toast('Personel listesi yükleniyor...', 0);
+      const r = await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body:'{}' });
+      const raw = await r.json();
+      if (!Array.isArray(raw)) throw new Error('Dizi beklendi: ' + JSON.stringify(raw).slice(0,150));
+      tumPersonel = raw.map(normalizePersonel);
+      gercekVeri = true;
+      document.getElementById('veriBadge').textContent = '✓ SharePoint';
+      document.getElementById('veriBadge').style.background = '#f0fdf4';
+      document.getElementById('veriBadge').style.color = '#166534';
+      toast('✓ ' + tumPersonel.length + ' personel yüklendi');
+    } catch(e) {
+      tumPersonel = MOCK;
+      toast('⚠️ Flow bağlanamadı, örnek veri kullanılıyor');
+    }
+  } else {
+    tumPersonel = MOCK;
+  }
+  depolariDoldur();
+}
+
+function depolariDoldur() {
+  const depolar = [...new Set([
+    ...tumPersonel.map(p => p.CalistigiDepo).filter(Boolean),
+    'YILMAZLAR DEPO', 'SİLİVRİ DEPO'
+  ])].sort();
+  const cont = document.getElementById('depoMselItems');
+  cont.innerHTML = '';
+  depolar.forEach(d => {
+    cont.innerHTML += `<label><input type="checkbox" value="${d}" onchange="mselDegisti('depo')"> ${d}</label>`;
+  });
+  // Yönetici multi-sel
+  const yoneticiler = [...new Set(tumPersonel.map(p => p.Yonetici).filter(Boolean))].sort();
+  const yCont = document.getElementById('yoneticiMselItems');
+  yCont.innerHTML = '';
+  yoneticiler.forEach(y => {
+    yCont.innerHTML += `<label><input type="checkbox" value="${y}" onchange="mselDegisti('yon')"> ${y}</label>`;
+  });
+  document.getElementById('yoneticiMsel').style.display = 'inline-block';
+
+  // Açılışta tüm depoları seç
+  const tumCb = document.querySelector('#depoMselPanel input[value=TUMU]');
+  if (tumCb) {
+    tumCb.checked = false; // Tümü checkbox'ını değil, ayrı ayrı seç
+  }
+  const depoCbs = document.querySelectorAll('#depoMselItems input[type=checkbox]');
+  depoCbs.forEach(cb => { cb.checked = true; });
+  seciliDepolar = [...depoCbs].map(cb => cb.value);
+  const depoLabel = document.getElementById('depoMselLabel');
+  if (depoLabel) depoLabel.textContent = 'Tüm Depolar';
+  depoSecildi();
+}
+
+// ─── DEPO SEÇİMİ ──────────────────────────────────────────────────────────────
+function depoSecildi() {
+  const tarih = document.getElementById('tarihInp').value;
+
+  // Seçili depo ve yönetici yoksa tüm personeli göster
+  const hicDepoYok = seciliDepolar.length === 0;
+  const tumuSec = seciliDepolar.includes('TUMU');
+
+  document.getElementById('emptyMsg').style.display = 'none';
+  document.getElementById('yokContent').style.display = 'block';
+
+  // Aktif listeyi oluştur
+  if (hicDepoYok || tumuSec) {
+    aktifListe = [...tumPersonel];
+    document.getElementById('tableTitle').textContent = 'Tüm Personel';
+  } else {
+    aktifListe = tumPersonel.filter(p => {
+      const dep = (p.CalistigiDepo || '').trim();
+      return seciliDepolar.some(s => s.trim() === dep);
+    });
+    document.getElementById('tableTitle').textContent =
+      (seciliDepolar.length <= 2 ? seciliDepolar.join(', ') : seciliDepolar.length + ' depo') + ' — Personel Listesi';
+  }
+
+  // Yönetici filtresi
+  if (seciliYoneticiler.length > 0) {
+    aktifListe = aktifListe.filter(p =>
+      seciliYoneticiler.some(y => y.trim() === (p.Yonetici || '').trim())
+    );
+  }
+
+  yoneticiDoldur();
+
+  // Kayıtları yükle
+  const tumDep = hicDepoYok || tumuSec
+    ? [...new Set(tumPersonel.map(p => p.CalistigiDepo).filter(Boolean))]
+    : seciliDepolar;
+
+  let birlesik = {};
+  tumDep.forEach(dep => {
+    const k = ls('ys_' + tarih + '_' + dep.trim());
+    if (k) { try { Object.assign(birlesik, JSON.parse(k)); } catch(e){} }
+  });
+
+  if (Object.keys(birlesik).length > 0) {
+    durumlar = birlesik;
+  } else {
+    durumlar = {};
+    aktifListe.forEach(p => { durumlar[p.ID] = { durum: 'Geldi' }; });
+  }
+
+  tabloRender();
+  istatistik();
+  progress();
+}
+
+function yoneticiDoldur() {
+  const yoneticiler = [...new Set(aktifListe.map(p => p.Yonetici).filter(Boolean))].sort();
+  const cont = document.getElementById('yoneticiMselItems');
+  if (!cont) return;
+  const prev = [...cont.querySelectorAll('input:checked')].map(c => c.value);
+  cont.innerHTML = '';
+  yoneticiler.forEach(y => {
+    const chk = prev.includes(y) ? 'checked' : '';
+    cont.innerHTML += `<label><input type="checkbox" value="${y}" ${chk} onchange="mselDegisti('yon')"> ${y}</label>`;
+  });
+}
+
+function yoneticiFiltrele() {
+  tabloRender();
+}
+
+// ─── TABLO RENDER ─────────────────────────────────────────────────────────────
+function tabloRender() {
+  const filtre = aramaStr.toLowerCase();
+  const secYonetici = document.getElementById('yoneticiSel')?.value || '';
+  const liste = aktifListe.filter(p => {
+    const metinUygun = !filtre || p.Title.toLowerCase().includes(filtre) || (p.Yonetici||'').toLowerCase().includes(filtre);
+    const yoneticiUygun = !secYonetici || p.Yonetici === secYonetici;
+    return metinUygun && yoneticiUygun;
+  });
+  filtreliListe = liste;
+
+  const depolar = [...new Set([...tumPersonel.map(p => p.CalistigiDepo).filter(Boolean), 'YILMAZLAR DEPO', 'SİLİVRİ DEPO'])].filter(d => d !== secDepo).sort();
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  liste.forEach(p => {
+    const k = durumlar[p.ID] || {};
+    const d = k.durum || '';
+    const ini = p.Title.split(' ').map(w => w[0]).slice(0,2).join('');
+    const farklıDepo = d && d !== 'Geldi' && d !== 'Gelmedi' && d !== 'Geç Geldi' && d !== '_d';
+
+    const tr = document.createElement('tr');
+    tr.className = 'dr';
+    tr.innerHTML = `
+      <td><div class="pi"><div class="avi">${ini}</div><div><div class="pn">${p.Title}</div><div class="ps">${p.PersonelRef||''}</div></div></div></td>
+      <td style="text-align:center">
+          <input type="text" value="${p.MasaNo||''}" placeholder="—"
+            style="width:55px;text-align:center;border:1.5px solid transparent;border-radius:6px;padding:4px 6px;font-family:'Lexend',sans-serif;font-size:13px;background:transparent;cursor:pointer;outline:none;color:var(--text)"
+            onmouseover="this.style.borderColor='var(--border)'"
+            onmouseout="if(document.activeElement!==this)this.style.borderColor='transparent'"
+            onfocus="this.style.borderColor='var(--blue)';this.style.background='#fff'"
+            onblur="this.style.borderColor='transparent';this.style.background='transparent';masaGuncelle(${p.ID},this.value)"
+            onclick="this.select()">
+        </td>
+      <td style="font-size:12.5px">${p.Yonetici||'—'}</td>
+      <td>
+        <div class="sbtns">
+          <button class="sbtn sb-g ${d==='Geldi'||farklıDepo?'on':''}" onclick="durumSec(${p.ID},'Geldi')">✓ Geldi</button>
+          <button class="sbtn sb-r ${d==='Gelmedi'?'on':''}" onclick="durumSec(${p.ID},'Gelmedi')">✗ Gelmedi</button>
+          <button class="sbtn sb-a ${d==='Geç Geldi'?'on':''}" onclick="durumSec(${p.ID},'Geç Geldi')">⏰ Geç Geldi</button>
+          <button onclick="satirKaydet(${p.ID},this)" style="margin-left:6px;padding:4px 12px;background:#fff;border:1.5px solid var(--border);border-radius:6px;font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s" onmouseover="this.style.borderColor='var(--blue)';this.style.color='var(--blue)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">💾</button>
+        </div>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    // Detay satırı: Gelmedi / Geç Geldi → sebep
+    if (d === 'Gelmedi' || d === 'Geç Geldi') {
+      const dt = document.createElement('tr');
+      dt.className = 'dtr';
+      dt.innerHTML = `<td colspan="4"><div class="dinp">
+        <span class="dlbl">Sebep:</span>
+        <select onchange="detayGuncelle(${p.ID},'sebep',this.value)">
+          <option value="">— Seçin —</option>
+          ${SEBEPLER.map(s => `<option value="${s}" ${k.sebep===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <span class="dlbl">Açıklama:</span>
+        <input type="text" placeholder="Opsiyonel..." value="${k.aciklama||''}" oninput="detayGuncelle(${p.ID},'aciklama',this.value)" style="flex:1;min-width:200px;max-width:320px">
+      </div></td>`;
+      tbody.appendChild(dt);
+    }
+
+    // Detay satırı: Geldi → lokasyon seçimi
+    if (d === 'Geldi' || farklıDepo) {
+      const dt = document.createElement('tr');
+      dt.className = 'dtr';
+      const mevcutLok = farklıDepo ? k.durum : (k.nerede || p.CalistigiDepo || '');
+      const kendiDepo = p.CalistigiDepo || '';
+      dt.innerHTML = `<td colspan="4"><div class="dinp">
+        <span class="dlbl">📍 Lokasyon:</span>
+        <select onchange="geldiLokasyon(${p.ID}, this.value, '${kendiDepo}')">
+          <option value="${kendiDepo}" ${!farklıDepo?'selected':''}>Kendi Deposu (${kendiDepo})</option>
+          ${depolar.filter(dd=>dd!==kendiDepo).map(dd => `<option value="${dd}" ${k.durum===dd?'selected':''}>${dd}</option>`).join('')}
+        </select>
+        ${farklıDepo ? '<span style="font-size:11px;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px">↗ Destek</span>' : ''}
+      </div></td>`;
+      tbody.appendChild(dt);
+    }
+
+    // Detay satırı: Farklı depo → depo seçimi
+    if (d === '_d' || farklıDepo) {
+      const dt = document.createElement('tr');
+      dt.className = 'dtr';
+      dt.innerHTML = `<td colspan="4"><div class="dinp">
+        <span class="dlbl">Gittiği depo:</span>
+        <select onchange="detayGuncelle(${p.ID},'durum',this.value)">
+          <option value="">— Depo seçin —</option>
+          ${depolar.map(dd => `<option value="${dd}" ${k.durum===dd?'selected':''}>${dd}</option>`).join('')}
+        </select>
+      </div></td>`;
+      tbody.appendChild(dt);
+    }
+  });
+}
+
+// ─── MASA NO GÜNCELLEME ──────────────────────────────────────────────────────
+function masaGuncelle(id, yeniMasa) {
+  const p = tumPersonel.find(p => p.ID === id);
+  if (p) {
+    p.MasaNo = yeniMasa;
+    // localStorage'a kaydet
+    if (!durumlar[id]) durumlar[id] = {};
+    durumlar[id].masaNo = yeniMasa;
+    otomatikKaydet();
+  }
+}
+
+// ─── DURUM & DETAY ────────────────────────────────────────────────────────────
+function durumSec(id, durum) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].durum = durum;
+  if (durum === 'Geldi') { durumlar[id].sebep = ''; durumlar[id].aciklama = ''; }
+  otomatikKaydet();
+  tabloRender();
+  istatistik();
+  progress();
+}
+
+function detayGuncelle(id, alan, val) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id][alan] = val;
+  otomatikKaydet();
+  if (alan === 'durum') { istatistik(); progress(); }
+}
+
+// ─── GELDİ LOKASYON ──────────────────────────────────────────────────────────
+function geldiLokasyon(id, depo, kendi) {
+  if (!durumlar[id]) durumlar[id] = {};
+  if (depo === kendi || depo === '') {
+    // Kendi deposu - normal geldi
+    durumlar[id].durum = 'Geldi';
+    durumlar[id].nerede = kendi;
+  } else {
+    // Farklı depo - destek
+    durumlar[id].durum = depo;
+    durumlar[id].nerede = depo;
+  }
+  otomatikKaydet();
+  tabloRender();
+  istatistik();
+  progress();
+}
+
+// ─── ARAMA ────────────────────────────────────────────────────────────────────
+function ara(v) { aramaStr = v; tabloRender(); }
+
+// ─── İSTATİSTİK & PROGRESS ───────────────────────────────────────────────────
+function istatistik() {
+  const liste = filtreliListe.length > 0 ? filtreliListe : aktifListe;
+  let g=0, gm=0, gc=0;
+  liste.forEach(p => {
+    const d = (durumlar[p.ID]||{}).durum||'';
+    const isDestek = d && d!=='Geldi' && d!=='Gelmedi' && d!=='Geç Geldi' && d!=='_d';
+    if(d==='Geldi' || isDestek) g++;  // Destek = işe geldi sayılır
+    else if(d==='Gelmedi') gm++;
+    else if(d==='Geç Geldi') gc++;
+  });
+  document.getElementById('sTotal').textContent = liste.length;
+  document.getElementById('sGeldi').textContent = g;
+  document.getElementById('sGelmedi').textContent = gm;
+  document.getElementById('sGec').textContent = gc;
+}
+
+function progress() {
+  const liste = filtreliListe.length > 0 ? filtreliListe : aktifListe;
+  const total = liste.length;
+  const done = liste.filter(p => {
+    const d = (durumlar[p.ID]||{}).durum||'';
+    return d && d !== '_d';
+  }).length;
+  const pct = total > 0 ? Math.round(done/total*100) : 0;
+
+  document.getElementById('progFill').style.width = pct+'%';
+  document.getElementById('progDone').textContent = done;
+  document.getElementById('progTotal').textContent = total;
+
+  const btn = document.getElementById('kaydetBtn');
+  btn.disabled = done < total;
+
+  const info = document.getElementById('bbarInfo');
+  if (done === total && total > 0) {
+    info.innerHTML = '✅ Tüm personel girildi — kaydedebilirsiniz';
+    info.style.color = '#16a34a';
+  } else {
+    const eksik = total - done;
+    info.innerHTML = `<span style="color:#ef4444;cursor:pointer;text-decoration:underline" onclick="eksikGoster()">⚠️ ${eksik} kişinin kaydı eksik</span>`;
+    info.style.color = '';
+  }
+}
+
+// ─── OTOMATİK KAYDET ─────────────────────────────────────────────────────────
+function otomatikKaydet() {
+  if (seciliDepolar.length === 0) return;
+  const tarih = document.getElementById('tarihInp').value;
+  const depolar = tumPersonel.map(p => p.CalistigiDepo).filter(Boolean);
+  const tumDep = [...new Set(depolar)];
+  // Her depo için kendi personelinin kayıtlarını ayrı kaydet
+  tumDep.forEach(dep => {
+    const depPersonel = tumPersonel.filter(p => p.CalistigiDepo === dep).map(p => p.ID);
+    const depKayit = {};
+    depPersonel.forEach(id => { if (durumlar[id]) depKayit[id] = durumlar[id]; });
+    if (Object.keys(depKayit).length > 0) {
+      localStorage.setItem('ys_' + tarih + '_' + dep, JSON.stringify(depKayit));
+    }
+  });
+}
+
+function yedekYukle() {
+  if (!secDepo) { toast('⚠️ Önce depo seçin'); return; }
+  const key = 'ys_' + document.getElementById('tarihInp').value + '_' + secDepo;
+  const v = ls(key);
+  if (v) { durumlar = JSON.parse(v); tabloRender(); istatistik(); progress(); toast('✓ Yedek yüklendi'); }
+  else toast('Kayıtlı yedek bulunamadı');
+}
+
+// ─── KAYDET ───────────────────────────────────────────────────────────────────
+async function kaydet() {
+  const tarih = document.getElementById('tarihInp').value;
+  const url = ls('ys_kUrl');
+
+  const kayitlar = aktifListe.map(p => {
+    const k = durumlar[p.ID] || {};
+    const durum = k.durum || '';
+    const farklıDepo = durum && durum !== 'Geldi' && durum !== 'Gelmedi' && durum !== 'Geç Geldi';
+    return {
+      Tarih: tarih,
+      PersonelRef: p.PersonelRef || String(p.ID),
+      PersonelAd: p.Title,
+      CalistigiDepo: p.CalistigiDepo,
+      Yonetici: p.Yonetici,
+      MasaNo: p.MasaNo,
+      Durum: farklıDepo ? durum : durum,
+      Sebep: k.sebep || '',
+      Aciklama: k.aciklama || '',
+      Nerede: farklıDepo ? durum : ''
+    };
+  });
+
+  if (url) {
+    try {
+      const btn = document.getElementById('kaydetBtn');
+      btn.textContent = 'Kaydediliyor...';
+      btn.disabled = true;
+      await fetch(url, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({tarih, depo:secDepo, kayitlar})});
+      toast('✓ ' + kayitlar.length + " kayıt SharePoint'e gönderildi");
+    } catch(e) {
+      toast('⚠️ Sunucu hatası — yedek localStorage\'a kaydedildi');
+    } finally {
+      document.getElementById('kaydetBtn').textContent = 'Kaydet';
+      progress();
+    }
+  } else {
+    otomatikKaydet();
+    toast('✓ ' + kayitlar.length + " kayıt kaydedildi (Flow URL girilmemiş)");
+  }
+}
+
+// ─── TÜMÜNÜ SIFIRLA ──────────────────────────────────────────────────────────
+function tumunuSifirla() {
+  if (!confirm('Tüm durumları "Geldi" olarak sıfırlamak istiyor musun?')) return;
+  aktifListe.forEach(p => { durumlar[p.ID] = { durum: 'Geldi' }; });
+  otomatikKaydet();
+  tabloRender(); istatistik(); progress();
+  toast('✓ Tüm personel Geldi olarak işaretlendi');
+}
+
+// ─── DASHBOARD
+function donutChart(geldi, gelmedi, gec, destek, toplam) {
+  if (toplam === 0) return '<svg width="64" height="64"></svg>';
+  const r = 24, cx = 32, cy = 32;
+  const circ = 2 * Math.PI * r;
+  const pGelen  = (geldi + gec + destek) / toplam;
+  const pGelmedi = gelmedi / toplam;
+  const pKalan  = Math.max(0, 1 - pGelen - pGelmedi);
+  
+  let offset = 0;
+  const segs = [`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#f1f5f9" stroke-width="9"/>`];
+  
+  function seg(pct, color) {
+    if (pct <= 0) return;
+    const dash = pct * circ;
+    const gap  = circ - dash;
+    const rot  = -90 + (offset * 360);
+    segs.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-dasharray="${dash.toFixed(1)} ${gap.toFixed(1)}" transform="rotate(${rot.toFixed(1)},${cx},${cy})"/>`);
+    offset += pct;
+  }
+  
+  seg(pGelen,   '#16a34a');
+  seg(pGelmedi, '#ef4444');
+  seg(pKalan,   '#e2e8f0');
+  
+  return `<svg width="64" height="64" style="flex-shrink:0">${segs.join('')}</svg>`;
+}
+let dbSortKolon = '';
+let dbSortYon = 'asc';
+const BORA_BEY = 'Bekir Bora Karakaş';
+
+function isDestek(p, durum) {
+  // Farklı bir depoya gitmişse Destek
+  return durum && durum !== 'Geldi' && durum !== 'Gelmedi' && durum !== 'Geç Geldi';
+}
+
+function dashboardGuncelle() {
+  const tarih = document.getElementById('db-tarih-inp')?.value || document.getElementById('tarihInp').value;
+  if (document.getElementById('db-tarih-inp')) document.getElementById('db-tarih-inp').value = tarih;
+
+  const lokFiltre = document.getElementById('db-lokasyon')?.value || '';
+  const durFiltre = document.getElementById('db-durum-filtre')?.value || '';
+
+  // Tüm personeli ve kayıtları topla
+  const depolar = [...new Set(tumPersonel.map(p => p.CalistigiDepo).filter(Boolean))];
+  const tumKayitlar = {};
+  depolar.forEach(depo => {
+    const key = 'ys_' + tarih + '_' + depo;
+    const k = ls(key);
+    if (k) Object.assign(tumKayitlar, JSON.parse(k));
+  });
+
+  // Lokasyon dropdown doldur
+  const lokSel = document.getElementById('db-lokasyon');
+  if (lokSel && lokSel.options.length <= 1) {
+    const tumDepolar = [...new Set([...depolar, 'YILMAZLAR DEPO', 'SİLİVRİ DEPO'])].sort();
+    tumDepolar.forEach(d => { lokSel.innerHTML += `<option value="${d}">${d}</option>`; });
+  }
+  const yonSel = document.getElementById('db-yonetici-filtre');
+  if (yonSel && yonSel.options.length <= 1) {
+    const yoneticiler = [...new Set(tumPersonel.map(p => p.Yonetici).filter(Boolean))].sort();
+    yoneticiler.forEach(y => { yonSel.innerHTML += `<option value="${y}">${y}</option>`; });
+  }
+
+  // Her personel için özet satır oluştur
+  let satirlar = tumPersonel.map(p => {
+    const k = tumKayitlar[p.ID] || {};
+    const durum = k.durum || '';
+    const destek = isDestek(p, durum);
+    const nerede = destek ? durum : (p.CalistigiDepo || '');
+    const durumGoster = destek ? 'Destek' : (durum || '—');
+    return { ...p, durum, destek, nerede, durumGoster, sebep: k.sebep || '' };
+  });
+
+  const yonFiltre = document.getElementById('db-yonetici-filtre')?.value || '';
+
+  // Filtrele
+  if (lokFiltre) satirlar = satirlar.filter(s => s.CalistigiDepo === lokFiltre || s.nerede === lokFiltre);
+  if (yonFiltre) satirlar = satirlar.filter(s => s.Yonetici === yonFiltre);
+  if (durFiltre === 'Destek') satirlar = satirlar.filter(s => s.destek);
+  else if (durFiltre) satirlar = satirlar.filter(s => s.durum === durFiltre);
+
+  // Özet sayaçlar
+  const tumSatirlar = tumPersonel.map(p => {
+    const k = tumKayitlar[p.ID] || {};
+    const durum = k.durum || '';
+    return { p, durum, destek: isDestek(p, durum), unvan: getUnvan(p) };
+  });
+  const geldi    = tumSatirlar.filter(s => s.durum === 'Geldi' && !s.destek).length;
+  const gelmedi  = tumSatirlar.filter(s => s.durum === 'Gelmedi').length;
+  const gecGeldi = tumSatirlar.filter(s => s.durum === 'Geç Geldi').length;
+  const destek   = tumSatirlar.filter(s => s.destek).length;
+  const toplam   = tumPersonel.length;
+  const oran     = toplam > 0 ? Math.round((geldi + gecGeldi + destek) / toplam * 100) : 0;
+
+  // Unvan bazında sayılar
+  const insGeldi    = tumSatirlar.filter(s => s.unvan === 'Inspector' && s.durum === 'Geldi').length;
+  const insGelmedi  = tumSatirlar.filter(s => s.unvan === 'Inspector' && s.durum === 'Gelmedi').length;
+  const insToplam   = tumSatirlar.filter(s => s.unvan === 'Inspector').length;
+  const insOran     = insToplam > 0 ? Math.round((tumSatirlar.filter(s => s.unvan === 'Inspector' && (s.durum === 'Geldi' || s.durum === 'Geç Geldi' || s.destek)).length) / insToplam * 100) : 0;
+
+  const yonetimToplam = tumPersonel.filter(p => getUnvan(p) !== 'Inspector').length;
+
+  document.getElementById('db-ozet').innerHTML = `
+    <span style="font-size:12px;background:#f8fafc;color:var(--text);padding:5px 12px;border-radius:20px;font-weight:600;border:1px solid var(--border)">👥 ${toplam} Toplam</span>
+    <span style="font-size:12px;background:#eff6ff;color:#1d4ed8;padding:5px 12px;border-radius:20px;font-weight:600;border:1px solid #bfdbfe">🔍 ${insToplam} Inspector</span>
+    <span style="font-size:12px;background:#f5f3ff;color:#6d28d9;padding:5px 12px;border-radius:20px;font-weight:600;border:1px solid #ddd6fe">👔 ${yonetimToplam} Yönetim</span>
+    <span style="font-size:12px;background:#f0fdf4;color:#16a34a;padding:5px 12px;border-radius:20px;font-weight:500">✓ ${geldi} Geldi</span>
+    <span style="font-size:12px;background:#fef2f2;color:#dc2626;padding:5px 12px;border-radius:20px;font-weight:500">✗ ${gelmedi} Gelmedi</span>
+    <span style="font-size:12px;background:#fffbeb;color:#b45309;padding:5px 12px;border-radius:20px;font-weight:500">⏰ ${gecGeldi} Geç</span>
+    <span style="font-size:12px;background:#eff6ff;color:#1d4ed8;padding:5px 12px;border-radius:20px;font-weight:500">↗ ${destek} Destek</span>
+    <span style="font-size:12px;background:#f5f3ff;color:#6d28d9;padding:5px 12px;border-radius:20px;font-weight:600">%${oran} Genel · %${insOran} Inspector</span>
+  `;
+
+  // İNSPEKTÖR ÖZETİ (filtreye göre)
+  const filtreliSatirlar = satirlar; // zaten filtrelenmiş
+  const insFiltreli = filtreliSatirlar.filter(s => getUnvan(s) === 'Inspector');
+  const insG  = insFiltreli.filter(s => s.durum === 'Geldi' && !s.destek).length;
+  const insGm = insFiltreli.filter(s => s.durum === 'Gelmedi').length;
+  const insGc = insFiltreli.filter(s => s.durum === 'Geç Geldi').length;
+  const insD  = insFiltreli.filter(s => s.destek).length;
+  const insTop = insFiltreli.length;
+  const insOranF = insTop > 0 ? Math.round((insG + insGc + insD) / insTop * 100) : 0;
+
+  const ozetDiv = document.getElementById('db-ins-ozet');
+  if (insTop > 0) {
+    ozetDiv.innerHTML = `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:12px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+        <span style="font-size:13px;font-weight:600;color:#1d4ed8">🔍 ${insTop} Inspector</span>
+        <span style="color:var(--muted);font-size:13px">→</span>
+        <span style="font-size:13px;color:#16a34a;font-weight:500">✓ ${insG + insGc + insD} Geldi${insD > 0 ? ' (' + insD + ' Destek)' : ''}${insGc > 0 ? ' (' + insGc + ' Geç)' : ''}</span>
+        <span style="font-size:13px;color:#dc2626;font-weight:500">✗ ${insGm} Gelmedi</span>
+        <span style="margin-left:auto;font-size:13px;font-weight:700;color:${insOranF>=90?'#16a34a':insOranF>=75?'#d97706':'#dc2626'}">%${insOranF} Devamlılık</span>
+      </div>`;
+  } else {
+    ozetDiv.innerHTML = '';
+  }
+
+  // Yönetici kartları
+  const yoneticiler = [...new Set(tumPersonel.map(p => p.Yonetici).filter(Boolean))].sort();
+  const kartDiv = document.getElementById('db-yonetici-kartlar');
+  kartDiv.innerHTML = '';
+  yoneticiler.forEach(y => {
+    const yPersonel = tumPersonel.filter(p => p.Yonetici === y);
+    let yG=0, yGm=0, yGc=0, yD=0;
+    yPersonel.forEach(p => {
+      const k = tumKayitlar[p.ID] || {};
+      const d = k.durum || '';
+      if (isDestek(p, d)) yD++;
+      else if (d === 'Geldi') yG++;
+      else if (d === 'Gelmedi') yGm++;
+      else if (d === 'Geç Geldi') yGc++;
+    });
+    const yOran = yPersonel.length > 0 ? Math.round((yG + yGc + yD) / yPersonel.length * 100) : 0;
+    const renk = yOran >= 90 ? '#16a34a' : yOran >= 75 ? '#d97706' : '#dc2626';
+    const chart = donutChart(yG, yGm, yGc, yD, yPersonel.length);
+    kartDiv.innerHTML += `
+      <div style="background:#fff;border:${(document.getElementById('db-yonetici-filtre')?.value||'')=== y ? '2px solid var(--blue)' : '1px solid var(--border)'};border-radius:var(--r);padding:12px 14px;min-width:180px;flex-shrink:0;cursor:pointer;transition:box-shadow .15s"
+           onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow='none'"
+           onclick="dbYoneticiKartTikla('${y}')">
+        <div style="font-size:11px;font-weight:600;margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;color:var(--muted)" title="${y}">${y}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${chart}
+          <div>
+            <div style="font-size:22px;font-weight:700;color:${renk}">%${yOran}</div>
+            <div style="font-size:10.5px;color:var(--muted);margin-top:3px">${yG + yGc + yD} Geldi · ${yGm} Gelmedi${yD > 0 ? '<br>(' + yD + ' Destek)' : ''}</div>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // DEPO BAZINDA İNSPEKTÖR DAĞILIMI
+  const depoInsMap = {}; // { depoAdi: { toplam, isimler[] } }
+  tumPersonel.forEach(p => {
+    if (getUnvan(p) !== 'Inspector') return;
+    const k = tumKayitlar[p.ID] || {};
+    const durum = k.durum || '';
+    if (!durum || durum === 'Gelmedi') return; // gelmeyen sayılmaz
+
+    let bulunduguDepo;
+    if (isDestek(p, durum)) {
+      bulunduguDepo = durum; // farklı depoya gitti
+    } else {
+      bulunduguDepo = p.CalistigiDepo || 'Bilinmiyor';
+    }
+
+    if (!depoInsMap[bulunduguDepo]) depoInsMap[bulunduguDepo] = { toplam: 0, isimler: [], destek: 0 };
+    depoInsMap[bulunduguDepo].toplam++;
+    depoInsMap[bulunduguDepo].isimler.push({ ad: p.Title, destek: isDestek(p, durum), asılDepo: p.CalistigiDepo });
+    if (isDestek(p, durum)) depoInsMap[bulunduguDepo].destek++;
+  });
+
+  const toplamCalisanIns = Object.values(depoInsMap).reduce((s, d) => s + d.toplam, 0);
+  const depoInsDiv = document.getElementById('db-depo-inspektor');
+  let depoHtml = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">`;
+  
+  // Tüm depoları göster (yoklama girilmemiş olanlar da dahil)
+  const tumDepolarkartlar = [...new Set([...tumPersonel.map(p => p.CalistigiDepo).filter(Boolean), 'YILMAZLAR DEPO', 'SİLİVRİ DEPO'])].sort();
+  
+  tumDepolarkartlar.forEach(depo => {
+    const depoTumPersonel = tumPersonel.filter(p => p.CalistigiDepo === depo);
+    const depoInspektor = depoTumPersonel.filter(p => getUnvan(p) === 'Inspector');
+    const aktifData = depoInsMap[depo] || { toplam: 0, destek: 0 };
+    
+    depoHtml += `
+      <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">${depo}</div>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:2px">
+          <div style="font-size:26px;font-weight:700;color:#1d4ed8">${aktifData.toplam}</div>
+          <div style="font-size:12px;color:var(--muted)">/ ${depoInspektor.length} inspector aktif</div>
+        </div>
+        <div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Toplam ${depoTumPersonel.length} personel</div>
+        <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:8px">
+          <div style="height:100%;background:#1d4ed8;border-radius:2px;width:${depoInspektor.length > 0 ? Math.round(aktifData.toplam/depoInspektor.length*100) : 0}%"></div>
+        </div>
+        ${aktifData.destek > 0 ? `<div style="font-size:11px;padding:4px 8px;background:#eff6ff;border-radius:6px;color:#1d4ed8">↗ ${aktifData.destek} destek geldi</div>` : ''}
+        ${aktifData.toplam === 0 ? `<div style="font-size:11px;padding:4px 8px;background:#fef2f2;border-radius:6px;color:#dc2626">⚠ Veri girilmedi</div>` : ''}
+      </div>`;
+  });
+  depoHtml += `</div>`;
+
+  depoInsDiv.innerHTML = `
+    <div class="tcard" style="margin-bottom:0">
+      <div class="tcard-head">
+        <h3>🔍 Bugün Depolardaki Inspector Dağılımı</h3>
+        <span style="font-size:12.5px;color:var(--muted)">Toplam <b style="color:var(--text)">${toplamCalisanIns}</b> inspector aktif</span>
+      </div>
+      <div style="padding:14px">${depoHtml}</div>
+    </div>`;
+
+  // Sıralama uygula
+  if (dbSortKolon) {
+    satirlar.sort((a, b) => {
+      const va = (a[dbSortKolon] || '').toString().toLowerCase();
+      const vb = (b[dbSortKolon] || '').toString().toLowerCase();
+      return dbSortYon === 'asc' ? va.localeCompare(vb, 'tr') : vb.localeCompare(va, 'tr');
+    });
+  }
+
+  // Tablo
+  const tbody = document.getElementById('db-tbody');
+  tbody.innerHTML = '';
+  document.getElementById('db-kayit-sayisi').textContent = satirlar.length + ' kayıt';
+
+  satirlar.forEach(s => {
+    const bg = s.durum === 'Gelmedi' ? '#fff7ed' : s.destek ? '#eff6ff' : '';
+    const durumRenk = s.durum === 'Gelmedi' ? '#dc2626' : s.durum === 'Geç Geldi' ? '#d97706' : s.destek ? '#1d4ed8' : '#16a34a';
+    const sUnvan = getUnvan(s);
+    const sUnvanStil = UNVAN_RENK[sUnvan] || UNVAN_RENK['Inspector'];
+    tbody.innerHTML += `<tr style="background:${bg}">
+      <td style="font-size:12px">${s.Yonetici || '—'}</td>
+      <td style="font-size:12px;color:var(--muted)">${s.PersonelRef || '—'}</td>
+      <td><div style="font-weight:500">${s.Title || '—'}</div><span style="font-size:10.5px;padding:1px 7px;border-radius:10px;background:${sUnvanStil.bg};color:${sUnvanStil.color};font-weight:500;margin-top:2px;display:inline-block">${sUnvan}</span></td>
+      <td style="text-align:center">${s.MasaNo || '—'}</td>
+      <td style="font-size:12.5px">${s.nerede || '—'}</td>
+      <td><span style="font-size:11.5px;font-weight:500;color:${durumRenk}">${s.durum === 'Gelmedi' ? '✗ Gelmedi' : s.durum === 'Geç Geldi' ? '⏰ Geç Geldi' : s.destek ? '✓ İşe Geldi' : s.durum ? '✓ İşe Geldi' : '—'}${s.sebep ? ' · ' + s.sebep : ''}</span></td>
+      <td style="font-size:12px;color:#1d4ed8;font-weight:${s.destek ? '600' : '400'}">${s.destek ? 'Destek (' + s.CalistigiDepo + ' → ' + s.nerede + ')' : ''}</td>
+    </tr>`;
+  });
+}
+
+function dbYoneticiKartTikla(yonetici) {
+  const yonSel = document.getElementById('db-yonetici-filtre');
+  if (yonSel) {
+    // Toggle: aynı yöneticiye tıklanırsa sıfırla
+    yonSel.value = yonSel.value === yonetici ? '' : yonetici;
+    dashboardGuncelle();
+  }
+}
+
+function dbSirala(kolon) {
+  if (dbSortKolon === kolon) {
+    dbSortYon = dbSortYon === 'asc' ? 'desc' : 'asc';
+  } else {
+    dbSortKolon = kolon;
+    dbSortYon = 'asc';
+  }
+  // Ok işaretlerini güncelle
+  ['Yonetici','Title','MasaNo','nerede','durum'].forEach(k => {
+    const el = document.getElementById('srt-' + k);
+    if (el) el.textContent = k === kolon ? (dbSortYon === 'asc' ? '↑' : '↓') : '↕';
+  });
+  dashboardGuncelle();
+}
+
+function mailGonder() {
+  toast('⚠️ Mail flow bağlantısı henüz yapılmadı');
+}
+
+// ─── MULTI SELECT ────────────────────────────────────────────────────────────
+function mselToggle(tip) {
+  const panel = document.getElementById(tip === 'depo' ? 'depoMselPanel' : 'yoneticiMselPanel');
+  panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function mselTumuDegisti(tip, cb) {
+  const cont = document.getElementById(tip === 'depo' ? 'depoMselItems' : 'yoneticiMselItems');
+  cont.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = cb.checked);
+  mselDegisti(tip);
+}
+
+function mselDegisti(tip) {
+  const cont = document.getElementById(tip === 'depo' ? 'depoMselItems' : 'yoneticiMselItems');
+  const tumuCb = cont.closest('.msel-panel').querySelector('input[value=TUMU]');
+  const secili = [...cont.querySelectorAll('input:checked')].map(c => c.value);
+  
+  if (tip === 'depo') {
+    seciliDepolar = secili;
+    const label = document.getElementById('depoMselLabel');
+    if (secili.length === 0) label.textContent = '— Depo Seçin —';
+    else if (secili.length <= 2) label.textContent = secili.join(', ');
+    else label.textContent = secili.length + ' depo seçili';
+    depoSecildi();
+  } else {
+    seciliYoneticiler = secili;
+    const label = document.getElementById('yoneticiMselLabel');
+    if (secili.length === 0) label.textContent = 'Tüm Yöneticiler';
+    else if (secili.length === 1) label.textContent = secili[0];
+    else label.textContent = secili.length + ' yönetici seçili';
+    depoSecildi();
+  }
+}
+
+// ─── SATIR KAYDET ────────────────────────────────────────────────────────────
+function satirKaydet(id, btn) {
+  const d = (durumlar[id]||{}).durum||'';
+  if (!d || d==='_d') { toast('⚠️ Önce durum seçin'); return; }
+  otomatikKaydet();
+  btn.textContent = '✓';
+  btn.style.borderColor = 'var(--green)';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => {
+    btn.textContent = '💾';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+  }, 1500);
+  istatistik(); progress();
+}
+
+// ─── EKSİK PERSONEL ──────────────────────────────────────────────────────────
+function eksikRender(eksikler) {
+  const liste = document.getElementById('eksikListe');
+  liste.innerHTML = eksikler.map(p => {
+    const ini = p.Title.split(' ').map(w=>w[0]).slice(0,2).join('');
+    const k = durumlar[p.ID] || {};
+    const d = k.durum || '';
+    const isDestek = d && d!=='Geldi' && d!=='Gelmedi' && d!=='Geç Geldi' && d!=='_d';
+    return `
+    <div id="eksik-row-${p.ID}" style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:30px;height:30px;border-radius:50%;background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex-shrink:0">${ini}</div>
+        <div>
+          <div style="font-weight:500;font-size:13px">${p.Title}</div>
+          <div style="font-size:11px;color:var(--muted)">${p.Yonetici||''} · ${p.CalistigiDepo||''}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        <button class="sbtn sb-g ${(d==='Geldi'||isDestek)?'on':''}" onclick="popupDurum(${p.ID},'Geldi')">✓ Geldi</button>
+        <button class="sbtn sb-r ${d==='Gelmedi'?'on':''}" onclick="popupDurum(${p.ID},'Gelmedi')">✗ Gelmedi</button>
+        <button class="sbtn sb-a ${d==='Geç Geldi'?'on':''}" onclick="popupDurum(${p.ID},'Geç Geldi')">⏰ Geç Geldi</button>
+        <button onclick="popupKaydet(${p.ID})" style="margin-left:auto;padding:5px 14px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px;cursor:pointer;font-weight:500">Kaydet</button>
+      </div>
+      <div class="popup-detail"></div>
+    </div>`;
+  }).join('');
+  eksikler.forEach(p => { if ((durumlar[p.ID]||{}).durum) popupSatirGuncelle(p.ID); });
+}
+
+function eksikGoster() {
+  eksikListeRender();
+  document.getElementById('eksikModal').classList.add('open');
+}
+
+function eksikListeRender() {
+  const eksikler = aktifListe.filter(p => {
+    const d = (durumlar[p.ID] || {}).durum || '';
+    return !d || d === '_d';
+  });
+  document.getElementById('eksikSayiText').textContent = eksikler.length + ' kişinin kaydı henüz girilmedi';
+  const liste = document.getElementById('eksikListe');
+  const depolar = [...new Set(tumPersonel.map(p => p.CalistigiDepo).filter(Boolean)), 'YILMAZLAR DEPO', 'SİLİVRİ DEPO'];
+
+  liste.innerHTML = eksikler.map(p => {
+    const ini = p.Title.split(' ').map(w=>w[0]).slice(0,2).join('');
+    const k = durumlar[p.ID] || {};
+    const d = k.durum || '';
+    const farklıDepoOpts = depolar.filter(dep => dep !== p.CalistigiDepo)
+      .map(dep => `<option value="${dep}" ${k.durum===dep?'selected':''}>${dep}</option>`).join('');
+    const sebepOpts = SEBEPLER.map(s => `<option value="${s}" ${k.sebep===s?'selected':''}>${s}</option>`).join('');
+
+    return `<div id="eksik-row-${p.ID}" style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+        <div style="width:30px;height:30px;border-radius:50%;background:#e0e7ff;color:#4338ca;display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:600;flex-shrink:0">${ini}</div>
+        <div style="flex:1">
+          <div style="font-weight:500;font-size:13.5px">${p.Title}</div>
+          <div style="font-size:11.5px;color:var(--muted)">${p.Yonetici||''} · ${p.CalistigiDepo||''}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        <button class="sbtn sb-g ${d==='Geldi'?'on':''}" onclick="eksikDurumSec(${p.ID},'Geldi')">✓ Geldi</button>
+        <button class="sbtn sb-r ${d==='Gelmedi'?'on':''}" onclick="eksikDurumSec(${p.ID},'Gelmedi')">✗ Gelmedi</button>
+        <button class="sbtn sb-a ${d==='Geç Geldi'?'on':''}" onclick="eksikDurumSec(${p.ID},'Geç Geldi')">⏰ Geç Geldi</button>
+        <button class="sbtn sb-d ${(d&&d!=='Geldi'&&d!=='Gelmedi'&&d!=='Geç Geldi')?'on':''}" onclick="eksikDurumSec(${p.ID},'_d')">→ Farklı Depo</button>
+        ${(d==='Gelmedi'||d==='Geç Geldi') ? `
+        <select onchange="eksikDetay(${p.ID},'sebep',this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px">
+          <option value="">— Sebep —</option>${sebepOpts}
+        </select>` : ''}
+        ${(d&&d!=='Geldi'&&d!=='Gelmedi'&&d!=='Geç Geldi'&&d!=='_d') ? `
+        <select onchange="eksikDetay(${p.ID},'durum',this.value)" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px">
+          <option value="">— Depo —</option>${farklıDepoOpts}
+        </select>` : ''}
+        <button onclick="eksikKaydet(${p.ID})" style="margin-left:auto;padding:5px 12px;background:var(--blue);color:#fff;border:none;border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px;cursor:pointer">Kaydet</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function eksikDurumSec(id, durum) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].durum = durum;
+  eksikListeRender();
+}
+
+function eksikDetay(id, alan, deger) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id][alan] = deger;
+}
+
+function eksikKaydet(id) {
+  otomatikKaydet();
+  tabloRender();
+  istatistik();
+  progress();
+  eksikListeRender();
+  toast('✓ Kaydedildi');
+}
+
+// ─── SAYFA NAVİGASYONU ────────────────────────────────────────────────────────
+function sayfaGoster(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'dashboard') dashboardGuncelle();
+  const basliklar = {yoklama:'Yoklama Girişi', dashboard:'Dashboard', raporlama:'Raporlama', mesai:'Mesai'};
+  document.getElementById('pageTitle').textContent = basliklar[id] || id;
+  const yoklama = id === 'yoklama';
+  document.getElementById('yoklamaCtrl').style.display = yoklama ? 'flex' : 'none';
+  document.getElementById('progBar').style.display = yoklama ? 'flex' : 'none';
+  document.getElementById('bbar').style.display = yoklama ? 'flex' : 'none';
+}
+
+// ─── AYARLAR ──────────────────────────────────────────────────────────────────
+function ayarlariAc() {
+  document.getElementById('cfgPersonel').value = ls('ys_pUrl') || '';
+  document.getElementById('cfgKaydet').value   = ls('ys_kUrl') || '';
+  document.getElementById('cfgSorgula').value  = ls('ys_sUrl') || '';
+  document.getElementById('ayarlarModal').classList.add('open');
+}
+function ayarlariKapat() { document.getElementById('ayarlarModal').classList.remove('open'); }
+function ayarlariKaydet() {
+  localStorage.setItem('ys_pUrl', document.getElementById('cfgPersonel').value.trim());
+  localStorage.setItem('ys_kUrl', document.getElementById('cfgKaydet').value.trim());
+  localStorage.setItem('ys_sUrl', document.getElementById('cfgSorgula').value.trim());
+  ayarlariKapat();
+  toast('✓ Ayarlar kaydedildi — sayfa yenileniyor...');
+  setTimeout(() => location.reload(), 1200);
+}
+
+// ─── TOAST ────────────────────────────────────────────────────────────────────
+let toastT;
+function toast(msg, dur=2800) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  if (dur > 0) toastT = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+function popupDurum(id, durum) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].durum = durum;
+  if (durum === 'Geldi') { durumlar[id].nerede = (tumPersonel.find(p=>p.ID===id)||{}).CalistigiDepo||''; }
+  // Sadece o kişinin satırını güncelle
+  popupSatirGuncelle(id);
+}
+
+function popupSatirGuncelle(id) {
+  const p = tumPersonel.find(x => x.ID === id);
+  if (!p) return;
+  const k = durumlar[id] || {};
+  const d = k.durum || '';
+  const isDestek = d && d!=='Geldi' && d!=='Gelmedi' && d!=='Geç Geldi' && d!=='_d';
+  const kendiDepo = p.CalistigiDepo || '';
+  const depolar = [...new Set([...tumPersonel.map(x=>x.CalistigiDepo).filter(Boolean),'YILMAZLAR DEPO','SİLİVRİ DEPO'])].sort();
+
+  const row = document.getElementById('eksik-row-' + id);
+  if (!row) return;
+
+  // Update button states
+  const btns = row.querySelectorAll('.sbtn');
+  btns.forEach(b => {
+    b.classList.remove('on');
+    if (b.textContent.includes('Geldi') && !b.textContent.includes('Geç') && (d==='Geldi'||isDestek)) b.classList.add('on');
+    if (b.textContent.includes('Gelmedi') && d==='Gelmedi') b.classList.add('on');
+    if (b.textContent.includes('Geç') && d==='Geç Geldi') b.classList.add('on');
+  });
+
+  // Update detail area
+  let detailEl = row.querySelector('.popup-detail');
+  if (!detailEl) {
+    detailEl = document.createElement('div');
+    detailEl.className = 'popup-detail';
+    row.appendChild(detailEl);
+  }
+
+  let detailHtml = '';
+  if (d === 'Geldi' || isDestek) {
+    detailHtml = `<div class="dinp" style="background:#f8fafc;padding:8px 10px;border-radius:8px;margin-top:6px">
+      <span class="dlbl">📍 Lokasyon:</span>
+      <select onchange="popupLokasyon(${id},this.value,'${kendiDepo}')">
+        <option value="${kendiDepo}" ${!isDestek?'selected':''}>Kendi Deposu (${kendiDepo})</option>
+        ${depolar.filter(dd=>dd!==kendiDepo).map(dd=>`<option value="${dd}" ${k.durum===dd?'selected':''}>${dd}</option>`).join('')}
+      </select>
+      ${isDestek ? '<span style="font-size:11px;background:#eff6ff;color:#1d4ed8;padding:2px 8px;border-radius:10px">↗ Destek</span>' : ''}
+    </div>`;
+  } else if (d === 'Gelmedi' || d === 'Geç Geldi') {
+    detailHtml = `<div class="dinp" style="background:#f8fafc;padding:8px 10px;border-radius:8px;margin-top:6px">
+      <span class="dlbl">Sebep:</span>
+      <select onchange="popupSebep(${id},this.value)">
+        <option value="">— Seçin —</option>
+        ${SEBEPLER.map(s=>`<option value="${s}" ${k.sebep===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+      <span class="dlbl">Açıklama:</span>
+      <input type="text" placeholder="Opsiyonel..." value="${k.aciklama||''}" oninput="popupAciklama(${id},this.value)"
+        style="flex:1;min-width:120px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-family:'Lexend',sans-serif;font-size:12px">
+    </div>`;
+  }
+  detailEl.innerHTML = detailHtml;
+}
+
+function popupLokasyon(id, depo, kendi) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].durum = (depo === kendi || !depo) ? 'Geldi' : depo;
+  durumlar[id].nerede = depo;
+  popupSatirGuncelle(id);
+}
+
+function popupSebep(id, sebep) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].sebep = sebep;
+}
+
+function popupAciklama(id, val) {
+  if (!durumlar[id]) durumlar[id] = {};
+  durumlar[id].aciklama = val;
+}
+
+function popupKaydet(id) {
+  const d = (durumlar[id]||{}).durum||'';
+  if (!d || d==='_d') { toast('⚠️ Önce durum seçin'); return; }
+  otomatikKaydet();
+  tabloRender(); istatistik(); progress();
+  if (document.getElementById('page-dashboard').classList.contains('active')) dashboardGuncelle();
+  // Row'u listeden kaldır
+  const row = document.getElementById('eksik-row-' + id);
+  if (row) {
+    row.style.transition = 'opacity 0.3s';
+    row.style.opacity = '0';
+    setTimeout(() => {
+      row.remove();
+      const eksikler = aktifListe.filter(p => { const d2=(durumlar[p.ID]||{}).durum||''; return !d2||d2==='_d'; });
+      document.getElementById('eksikSayiText').textContent = eksikler.length + ' kişinin kaydı henüz girilmedi';
+      if (eksikler.length === 0) {
+        document.getElementById('eksikModal').classList.remove('open');
+        toast('✅ Tüm kayıtlar tamamlandı!');
+      }
+    }, 300);
+  }
+}
+</script>
+</body>
+</html>
