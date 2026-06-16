@@ -1,0 +1,22 @@
+{
+  "name": "Inspection Yoklama Sistemi",
+  "short_name": "Yoklama",
+  "description": "LC Waikiki Inspection Ekibi Yoklama Sistemi",
+  "start_url": "yoklama.html",
+  "display": "standalone",
+  "background_color": "#f0f4f8",
+  "theme_color": "#192133",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%232563eb'/><text x='50%' y='55%' font-family='Arial' font-size='90' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>IY</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%232563eb'/><text x='50%' y='55%' font-family='Arial' font-size='240' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>IY</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
